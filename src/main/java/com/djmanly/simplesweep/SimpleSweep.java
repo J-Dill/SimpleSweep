@@ -1,7 +1,8 @@
 package com.djmanly.simplesweep;
 
-import net.minecraft.block.Blocks;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.SweepingEnchantment;
 import net.minecraft.entity.CreatureAttribute;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -10,8 +11,6 @@ import net.minecraft.entity.boss.dragon.EnderDragonPartEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.play.server.SEntityVelocityPacket;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.potion.Effects;
@@ -25,17 +24,9 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
-import java.util.stream.Collectors;
+import java.util.Map;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod("simplesweep")
@@ -50,12 +41,13 @@ public class SimpleSweep {
     public void interceptAttack(AttackEntityEvent event) {
         PlayerEntity player = event.getPlayer();
         ItemStack item = player.getHeldItemMainhand();
-        ListNBT enchantList = item.getEnchantmentTagList();
+        Map<Enchantment, Integer> enchants = EnchantmentHelper.getEnchantments(item);
         boolean foundSweeping = false;
-        for (INBT enchant : enchantList) {
-            String enchantString = enchant.getString();
-            if (enchantString.contains("sweeping")) {
+        for (Map.Entry<Enchantment, Integer> enchant : enchants.entrySet()) {
+            Enchantment enchantType = enchant.getKey();
+            if (enchantType instanceof SweepingEnchantment) {
                 foundSweeping = true;
+                break;
             }
         }
         Entity targetEntity = event.getTarget();
