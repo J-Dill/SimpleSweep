@@ -1,19 +1,13 @@
 modLoader="javafml" #mandatory
-loaderVersion="[28,)" #mandatory (26 is current forge version)
+loaderVersion="[28,)" #mandatory
 issueTrackerURL="http://github.com/strikerrocker/VanillaTweaks/issues/" #optional
 [[mods]] #mandatory
 modId="simplesweep" #mandatory
 version="1.0" #mandatory
-displayName="SimpleSweep" #mandatory
-#updateJSONURL="https://raw.githubusercontent.com/StrikerRockers-Mods/VanillaTweaks/1.14/version.json" #optional
-#displayURL="http://strikerrocker.github.io/vanillatweaks" #optional
-# A file name (in the root of the mod JAR) containing a logo for display
-#logoFile="logo.png" #optional
-# A text field displayed in the mod UI
+displayName="Simple Sweep" #mandatory
 credits="Big shoutout to computers, without you I would have no job." #optional
 authors="djmanly" #optional
-# The description text for the mod (multi line!) (#mandatory)
-description='''This is a minecraft mod that makes it so that sword will only do the sweeping attack when they are enchanted with the Sweeping Edge Enchantment.'''
+description='''Simple Minecraft mod that removes the sweep attack unless the weapon is enchanted with a sweeping enchantment (i.e. Sweeping Edge).'''
 [[dependencies.simplesweep]]
     modId="forge"
     mandatory=true

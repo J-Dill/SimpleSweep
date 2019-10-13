@@ -1,4 +1,4 @@
-package com.djmanly.simplesweep;
+package simplesweep;
 
 final class SSModInfo {
 

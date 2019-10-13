@@ -1,4 +1,4 @@
-package com.djmanly.simplesweep;
+package simplesweep;
 
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
