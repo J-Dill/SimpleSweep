@@ -1,9 +1,29 @@
 package com.djmanly.simplesweep;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.CreatureAttribute;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.boss.dragon.EnderDragonPartEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.network.play.server.SEntityVelocityPacket;
+import net.minecraft.particles.ParticleTypes;
+import net.minecraft.potion.Effects;
+import net.minecraft.stats.Stats;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.Hand;
+import net.minecraft.util.SoundEvents;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod;
@@ -11,7 +31,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,64 +40,165 @@ import java.util.stream.Collectors;
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod("simplesweep")
 public class SimpleSweep {
-    // Directly reference a log4j logger.
-    private static final Logger LOGGER = LogManager.getLogger();
 
     public SimpleSweep() {
-        // Register the setup method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-        // Register the enqueueIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
-        // Register the processIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
-        // Register the doClientStuff method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
-
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    private void setup(final FMLCommonSetupEvent event) {
-        // some preinit code
-        LOGGER.info("HELLO FROM PREINIT");
-        LOGGER.info("DIRT BLOCK >> {}", Blocks.DIRT.getRegistryName());
-    }
-
-    private void doClientStuff(final FMLClientSetupEvent event) {
-        // do something that can only be done on the client
-        LOGGER.info("Got game settings {}", event.getMinecraftSupplier().get().gameSettings);
-    }
-
-    private void enqueueIMC(final InterModEnqueueEvent event) {
-        // some example code to dispatch IMC to another mod
-        InterModComms.sendTo("simplesweep", "helloworld", () -> {
-            LOGGER.info("Hello world from the MDK");
-            return "Hello world";
-        });
-    }
-
-    private void processIMC(final InterModProcessEvent event) {
-        // some example code to receive and process InterModComms from other mods
-        LOGGER.info("Got IMC {}", event.getIMCStream().
-                map(m -> m.getMessageSupplier().get()).
-                collect(Collectors.toList()));
-    }
-
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
-    public void onServerStarting(FMLServerStartingEvent event) {
-        // do something when the server starts
-        LOGGER.info("HELLO from server starting");
+    public void interceptAttack(AttackEntityEvent event) {
+        PlayerEntity player = event.getPlayer();
+        ItemStack item = player.getHeldItemMainhand();
+        ListNBT enchantList = item.getEnchantmentTagList();
+        boolean foundSweeping = false;
+        for (INBT enchant : enchantList) {
+            String enchantString = enchant.getString();
+            if (enchantString.contains("sweeping")) {
+                foundSweeping = true;
+            }
+        }
+        Entity targetEntity = event.getTarget();
+        if (!foundSweeping) {
+            overrideVanillaMechanics(player, targetEntity);
+            event.setCanceled(true);
+        }
     }
 
-    // You can use EventBusSubscriber to automatically subscribe events on the contained class (this is subscribing to the MOD
-    // Event bus for receiving Registry Events)
-    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
-    public static class RegistryEvents {
-        @SubscribeEvent
-        public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
-            // register a new block here
-            LOGGER.info("HELLO from Register Block");
+    /**
+     * If weapon does not have Sweeping Edge enchantment, override
+     * vanilla mechanics to not do the sweep attack.
+     *
+     * @param player       The attacking player.
+     * @param targetEntity The entity being attacked.
+     * @see PlayerEntity#attackTargetEntityWithCurrentItem(Entity)
+     */
+    private void overrideVanillaMechanics(PlayerEntity player, Entity targetEntity) {
+        if (targetEntity.canBeAttackedWithItem()) {
+            if (!targetEntity.hitByEntity(player)) {
+                float f = (float) player.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getValue();
+                float f1;
+                if (targetEntity instanceof LivingEntity) {
+                    f1 = EnchantmentHelper.getModifierForCreature(player.getHeldItemMainhand(), ((LivingEntity) targetEntity).getCreatureAttribute());
+                } else {
+                    f1 = EnchantmentHelper.getModifierForCreature(player.getHeldItemMainhand(), CreatureAttribute.UNDEFINED);
+                }
+
+                float f2 = player.getCooledAttackStrength(0.5F);
+                f = f * (0.2F + f2 * f2 * 0.8F);
+                f1 = f1 * f2;
+                player.resetCooldown();
+                if (f > 0.0F || f1 > 0.0F) {
+                    boolean flag = f2 > 0.9F;
+                    int i = 0;
+                    i = i + EnchantmentHelper.getKnockbackModifier(player);
+                    if (player.isSprinting() && flag) {
+                        player.world.playSound(null, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, player.getSoundCategory(), 1.0F, 1.0F);
+                        ++i;
+                    }
+
+                    boolean flag2 = flag && player.fallDistance > 0.0F && !player.onGround && !player.isOnLadder() && !player.isInWater() && !player.isPotionActive(Effects.BLINDNESS) && !player.isPassenger() && targetEntity instanceof LivingEntity;
+                    flag2 = flag2 && !player.isSprinting();
+                    net.minecraftforge.event.entity.player.CriticalHitEvent hitResult = net.minecraftforge.common.ForgeHooks.getCriticalHit(player, targetEntity, flag2, flag2 ? 1.5F : 1.0F);
+                    flag2 = hitResult != null;
+                    if (flag2) {
+                        f *= hitResult.getDamageModifier();
+                    }
+
+                    f = f + f1;
+
+                    float f4 = 0.0F;
+                    boolean flag4 = false;
+                    int j = EnchantmentHelper.getFireAspectModifier(player);
+                    if (targetEntity instanceof LivingEntity) {
+                        f4 = ((LivingEntity) targetEntity).getHealth();
+                        if (j > 0 && !targetEntity.isBurning()) {
+                            flag4 = true;
+                            targetEntity.setFire(1);
+                        }
+                    }
+
+                    Vec3d vec3d = targetEntity.getMotion();
+                    boolean flag5 = targetEntity.attackEntityFrom(DamageSource.causePlayerDamage(player), f);
+                    if (flag5) {
+                        if (i > 0) {
+                            if (targetEntity instanceof LivingEntity) {
+                                ((LivingEntity) targetEntity).knockBack(player, (float) i * 0.5F, MathHelper.sin(player.rotationYaw * ((float) Math.PI / 180F)), (-MathHelper.cos(player.rotationYaw * ((float) Math.PI / 180F))));
+                            } else {
+                                targetEntity.addVelocity((-MathHelper.sin(player.rotationYaw * ((float) Math.PI / 180F)) * (float) i * 0.5F), 0.1D, (MathHelper.cos(player.rotationYaw * ((float) Math.PI / 180F)) * (float) i * 0.5F));
+                            }
+
+                            player.setMotion(player.getMotion().mul(0.6D, 1.0D, 0.6D));
+                            player.setSprinting(false);
+                        }
+
+                        if (targetEntity instanceof ServerPlayerEntity && targetEntity.velocityChanged) {
+                            ((ServerPlayerEntity) targetEntity).connection.sendPacket(new SEntityVelocityPacket(targetEntity));
+                            targetEntity.velocityChanged = false;
+                            targetEntity.setMotion(vec3d);
+                        }
+
+                        if (flag2) {
+                            player.world.playSound(null, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, player.getSoundCategory(), 1.0F, 1.0F);
+                            player.onCriticalHit(targetEntity);
+                        }
+
+                        if (!flag2) {
+                            if (flag) {
+                                player.world.playSound(null, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_STRONG, player.getSoundCategory(), 1.0F, 1.0F);
+                            } else {
+                                player.world.playSound(null, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_WEAK, player.getSoundCategory(), 1.0F, 1.0F);
+                            }
+                        }
+
+                        if (f1 > 0.0F) {
+                            player.onEnchantmentCritical(targetEntity);
+                        }
+
+                        player.setLastAttackedEntity(targetEntity);
+                        if (targetEntity instanceof LivingEntity) {
+                            EnchantmentHelper.applyThornEnchantments((LivingEntity) targetEntity, player);
+                        }
+
+                        EnchantmentHelper.applyArthropodEnchantments(player, targetEntity);
+                        ItemStack itemstack1 = player.getHeldItemMainhand();
+                        Entity entity = targetEntity;
+                        if (targetEntity instanceof EnderDragonPartEntity) {
+                            entity = ((EnderDragonPartEntity) targetEntity).dragon;
+                        }
+
+                        if (!player.world.isRemote && !itemstack1.isEmpty() && entity instanceof LivingEntity) {
+                            ItemStack copy = itemstack1.copy();
+                            itemstack1.hitEntity((LivingEntity) entity, player);
+                            if (itemstack1.isEmpty()) {
+                                net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(player, copy, Hand.MAIN_HAND);
+                                player.setHeldItem(Hand.MAIN_HAND, ItemStack.EMPTY);
+                            }
+                        }
+
+                        if (targetEntity instanceof LivingEntity) {
+                            float f5 = f4 - ((LivingEntity) targetEntity).getHealth();
+                            player.addStat(Stats.DAMAGE_DEALT, Math.round(f5 * 10.0F));
+                            if (j > 0) {
+                                targetEntity.setFire(j * 4);
+                            }
+
+                            if (player.world instanceof ServerWorld && f5 > 2.0F) {
+                                int k = (int) ((double) f5 * 0.5D);
+                                ((ServerWorld) player.world).spawnParticle(ParticleTypes.DAMAGE_INDICATOR, targetEntity.posX, targetEntity.posY + (double) (targetEntity.getHeight() * 0.5F), targetEntity.posZ, k, 0.1D, 0.0D, 0.1D, 0.2D);
+                            }
+                        }
+
+                        player.addExhaustion(0.1F);
+                    } else {
+                        player.world.playSound(null, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_NODAMAGE, player.getSoundCategory(), 1.0F, 1.0F);
+                        if (flag4) {
+                            targetEntity.extinguish();
+                        }
+                    }
+                }
+
+            }
         }
     }
 }
