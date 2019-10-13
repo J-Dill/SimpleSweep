@@ -58,12 +58,12 @@ public class SimpleSweep {
     }
 
     /**
-     * If weapon does not have Sweeping Edge enchantment, override
-     * vanilla mechanics to not do the sweep attack.
+     * This function mimics vanilla mechanics, except that it
+     * has the check for sweep attack taken out.
      *
      * @param player       The attacking player.
      * @param targetEntity The entity being attacked.
-     * @see PlayerEntity#attackTargetEntityWithCurrentItem(Entity)
+     * @see PlayerEntity#attackTargetEntityWithCurrentItem(Entity) The method from which this logic came from.
      */
     private void overrideVanillaMechanics(PlayerEntity player, Entity targetEntity) {
         if (targetEntity.canBeAttackedWithItem()) {
