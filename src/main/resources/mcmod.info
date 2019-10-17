@@ -3,7 +3,7 @@
     "modid": "simplesweep",
     "name": "SimpleSweep",
     "description": "Simple Minecraft mod that removes the sweep attack unless the weapon is enchanted with a sweeping enchantment (i.e. Sweeping Edge).",
-    "version": "1.0-1.12.2",
+    "version": "1.12.2-1.0",
     "mcversion": "1.12.2",
     "url": "",
     "updateUrl": "",
