@@ -1,196 +1,113 @@
 package simplesweep;
 
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.SweepingEnchantment;
-import net.minecraft.entity.CreatureAttribute;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.boss.dragon.EnderDragonPartEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.server.SEntityVelocityPacket;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.potion.Effects;
-import net.minecraft.stats.Stats;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.Hand;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraft.block.Block;
+import net.minecraft.item.Item;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 
-import java.util.Map;
-
-// The value here should match an entry in the META-INF/mods.toml file
-@Mod("simplesweep")
+@Mod(
+        modid = SimpleSweep.MOD_ID,
+        name = SimpleSweep.MOD_NAME,
+        version = SimpleSweep.VERSION
+)
 public class SimpleSweep {
 
-    public SimpleSweep() {
-        // Register ourselves for server and other game events we are interested in
-        MinecraftForge.EVENT_BUS.register(this);
-    }
+    static final String MOD_ID = "simplesweep";
+    static final String MOD_NAME = "SimpleSweep";
+    static final String VERSION = "2019.2-1.3.1";
 
-    @SubscribeEvent
-    public void interceptAttack(AttackEntityEvent event) {
-        PlayerEntity player = event.getPlayer();
-        ItemStack item = player.getHeldItemMainhand();
-        Map<Enchantment, Integer> enchants = EnchantmentHelper.getEnchantments(item);
-        boolean foundSweeping = false;
-        for (Map.Entry<Enchantment, Integer> enchant : enchants.entrySet()) {
-            Enchantment enchantType = enchant.getKey();
-            if (enchantType instanceof SweepingEnchantment) {
-                foundSweeping = true;
-                break;
-            }
-        }
-        Entity targetEntity = event.getTarget();
-        if (!foundSweeping) {
-            overrideVanillaMechanics(player, targetEntity);
-            event.setCanceled(true);
-        }
+    /**
+     * This is the instance of your mod as created by Forge. It will never be null.
+     */
+    @Mod.Instance(MOD_ID)
+    public static SimpleSweep INSTANCE;
+
+    /**
+     * This is the first initialization event. Register tile entities here.
+     * The registry events below will have fired prior to entry to this method.
+     */
+    @Mod.EventHandler
+    public void preinit(FMLPreInitializationEvent event) {
+
     }
 
     /**
-     * This function mimics vanilla mechanics, except that it
-     * has the check for sweep attack taken out.
-     *
-     * @param player       The attacking player.
-     * @param targetEntity The entity being attacked.
-     * @see PlayerEntity#attackTargetEntityWithCurrentItem(Entity) The method from which this logic came from.
+     * This is the second initialization event. Register custom recipes
      */
-    private void overrideVanillaMechanics(PlayerEntity player, Entity targetEntity) {
-        if (targetEntity.canBeAttackedWithItem()) {
-            if (!targetEntity.hitByEntity(player)) {
-                float f = (float) player.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getValue();
-                float f1;
-                if (targetEntity instanceof LivingEntity) {
-                    f1 = EnchantmentHelper.getModifierForCreature(player.getHeldItemMainhand(), ((LivingEntity) targetEntity).getCreatureAttribute());
-                } else {
-                    f1 = EnchantmentHelper.getModifierForCreature(player.getHeldItemMainhand(), CreatureAttribute.UNDEFINED);
-                }
+    @Mod.EventHandler
+    public void init(FMLInitializationEvent event) {
 
-                float f2 = player.getCooledAttackStrength(0.5F);
-                f = f * (0.2F + f2 * f2 * 0.8F);
-                f1 = f1 * f2;
-                player.resetCooldown();
-                if (f > 0.0F || f1 > 0.0F) {
-                    boolean flag = f2 > 0.9F;
-                    int i = 0;
-                    i = i + EnchantmentHelper.getKnockbackModifier(player);
-                    if (player.isSprinting() && flag) {
-                        player.world.playSound(null, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, player.getSoundCategory(), 1.0F, 1.0F);
-                        ++i;
-                    }
+    }
 
-                    boolean flag2 = flag && player.fallDistance > 0.0F && !player.onGround && !player.isOnLadder() && !player.isInWater() && !player.isPotionActive(Effects.BLINDNESS) && !player.isPassenger() && targetEntity instanceof LivingEntity;
-                    flag2 = flag2 && !player.isSprinting();
-                    net.minecraftforge.event.entity.player.CriticalHitEvent hitResult = net.minecraftforge.common.ForgeHooks.getCriticalHit(player, targetEntity, flag2, flag2 ? 1.5F : 1.0F);
-                    flag2 = hitResult != null;
-                    if (flag2) {
-                        f *= hitResult.getDamageModifier();
-                    }
+    /**
+     * This is the final initialization event. Register actions from other mods here
+     */
+    @Mod.EventHandler
+    public void postinit(FMLPostInitializationEvent event) {
 
-                    f = f + f1;
+    }
 
-                    float f4 = 0.0F;
-                    boolean flag4 = false;
-                    int j = EnchantmentHelper.getFireAspectModifier(player);
-                    if (targetEntity instanceof LivingEntity) {
-                        f4 = ((LivingEntity) targetEntity).getHealth();
-                        if (j > 0 && !targetEntity.isBurning()) {
-                            flag4 = true;
-                            targetEntity.setFire(1);
-                        }
-                    }
+    /**
+     * Forge will automatically look up and bind blocks to the fields in this class
+     * based on their registry name.
+     */
+    @GameRegistry.ObjectHolder(MOD_ID)
+    public static class Blocks {
+      /*
+          public static final MySpecialBlock mySpecialBlock = null; // placeholder for special block below
+      */
+    }
 
-                    Vec3d vec3d = targetEntity.getMotion();
-                    boolean flag5 = targetEntity.attackEntityFrom(DamageSource.causePlayerDamage(player), f);
-                    if (flag5) {
-                        if (i > 0) {
-                            if (targetEntity instanceof LivingEntity) {
-                                ((LivingEntity) targetEntity).knockBack(player, (float) i * 0.5F, MathHelper.sin(player.rotationYaw * ((float) Math.PI / 180F)), (-MathHelper.cos(player.rotationYaw * ((float) Math.PI / 180F))));
-                            } else {
-                                targetEntity.addVelocity((-MathHelper.sin(player.rotationYaw * ((float) Math.PI / 180F)) * (float) i * 0.5F), 0.1D, (MathHelper.cos(player.rotationYaw * ((float) Math.PI / 180F)) * (float) i * 0.5F));
-                            }
+    /**
+     * Forge will automatically look up and bind items to the fields in this class
+     * based on their registry name.
+     */
+    @GameRegistry.ObjectHolder(MOD_ID)
+    public static class Items {
+      /*
+          public static final ItemBlock mySpecialBlock = null; // itemblock for the block above
+          public static final MySpecialItem mySpecialItem = null; // placeholder for special item below
+      */
+    }
 
-                            player.setMotion(player.getMotion().mul(0.6D, 1.0D, 0.6D));
-                            player.setSprinting(false);
-                        }
+    /**
+     * This is a special class that listens to registry events, to allow creation of mod blocks and items at the proper time.
+     */
+    @Mod.EventBusSubscriber
+    public static class ObjectRegistryHandler {
+        /**
+         * Listen for the register event for creating custom items
+         */
+        @SubscribeEvent
+        public static void addItems(RegistryEvent.Register<Item> event) {
+           /*
+             event.getRegistry().register(new ItemBlock(Blocks.myBlock).setRegistryName(MOD_ID, "myBlock"));
+             event.getRegistry().register(new MySpecialItem().setRegistryName(MOD_ID, "mySpecialItem"));
+            */
+        }
 
-                        if (targetEntity instanceof ServerPlayerEntity && targetEntity.velocityChanged) {
-                            ((ServerPlayerEntity) targetEntity).connection.sendPacket(new SEntityVelocityPacket(targetEntity));
-                            targetEntity.velocityChanged = false;
-                            targetEntity.setMotion(vec3d);
-                        }
-
-                        if (flag2) {
-                            player.world.playSound(null, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, player.getSoundCategory(), 1.0F, 1.0F);
-                            player.onCriticalHit(targetEntity);
-                        }
-
-                        if (!flag2) {
-                            if (flag) {
-                                player.world.playSound(null, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_STRONG, player.getSoundCategory(), 1.0F, 1.0F);
-                            } else {
-                                player.world.playSound(null, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_WEAK, player.getSoundCategory(), 1.0F, 1.0F);
-                            }
-                        }
-
-                        if (f1 > 0.0F) {
-                            player.onEnchantmentCritical(targetEntity);
-                        }
-
-                        player.setLastAttackedEntity(targetEntity);
-                        if (targetEntity instanceof LivingEntity) {
-                            EnchantmentHelper.applyThornEnchantments((LivingEntity) targetEntity, player);
-                        }
-
-                        EnchantmentHelper.applyArthropodEnchantments(player, targetEntity);
-                        ItemStack itemstack1 = player.getHeldItemMainhand();
-                        Entity entity = targetEntity;
-                        if (targetEntity instanceof EnderDragonPartEntity) {
-                            entity = ((EnderDragonPartEntity) targetEntity).dragon;
-                        }
-
-                        if (!player.world.isRemote && !itemstack1.isEmpty() && entity instanceof LivingEntity) {
-                            ItemStack copy = itemstack1.copy();
-                            itemstack1.hitEntity((LivingEntity) entity, player);
-                            if (itemstack1.isEmpty()) {
-                                net.minecraftforge.event.ForgeEventFactory.onPlayerDestroyItem(player, copy, Hand.MAIN_HAND);
-                                player.setHeldItem(Hand.MAIN_HAND, ItemStack.EMPTY);
-                            }
-                        }
-
-                        if (targetEntity instanceof LivingEntity) {
-                            float f5 = f4 - ((LivingEntity) targetEntity).getHealth();
-                            player.addStat(Stats.DAMAGE_DEALT, Math.round(f5 * 10.0F));
-                            if (j > 0) {
-                                targetEntity.setFire(j * 4);
-                            }
-
-                            if (player.world instanceof ServerWorld && f5 > 2.0F) {
-                                int k = (int) ((double) f5 * 0.5D);
-                                ((ServerWorld) player.world).spawnParticle(ParticleTypes.DAMAGE_INDICATOR, targetEntity.posX, targetEntity.posY + (double) (targetEntity.getHeight() * 0.5F), targetEntity.posZ, k, 0.1D, 0.0D, 0.1D, 0.2D);
-                            }
-                        }
-
-                        player.addExhaustion(0.1F);
-                    } else {
-                        player.world.playSound(null, player.posX, player.posY, player.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_NODAMAGE, player.getSoundCategory(), 1.0F, 1.0F);
-                        if (flag4) {
-                            targetEntity.extinguish();
-                        }
-                    }
-                }
-
-            }
+        /**
+         * Listen for the register event for creating custom blocks
+         */
+        @SubscribeEvent
+        public static void addBlocks(RegistryEvent.Register<Block> event) {
+           /*
+             event.getRegistry().register(new MySpecialBlock().setRegistryName(MOD_ID, "mySpecialBlock"));
+            */
         }
     }
+    /* EXAMPLE ITEM AND BLOCK - you probably want these in separate files
+    public static class MySpecialItem extends Item {
+
+    }
+
+    public static class MySpecialBlock extends Block {
+
+    }
+    */
 }
