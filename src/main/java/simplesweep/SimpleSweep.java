@@ -32,7 +32,7 @@ public class SimpleSweep {
 
     static final String MOD_ID = "simplesweep";
     static final String MOD_NAME = "SimpleSweep";
-    static final String VERSION = "1.12.2-1.0";
+    static final String VERSION = "1.0";
 
 
     public SimpleSweep() {
