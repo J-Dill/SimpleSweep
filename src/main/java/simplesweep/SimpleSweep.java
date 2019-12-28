@@ -9,6 +9,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
 import net.minecraft.network.play.server.SPacketEntityVelocity;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.DamageSource;
@@ -44,19 +45,21 @@ public class SimpleSweep {
     public void interceptAttack(AttackEntityEvent event) {
         EntityPlayer player = event.getEntityPlayer();
         ItemStack item = player.getHeldItemMainhand();
-        Map<Enchantment, Integer> enchants = EnchantmentHelper.getEnchantments(item);
-        boolean foundSweeping = false;
-        for (Map.Entry<Enchantment, Integer> enchant : enchants.entrySet()) {
-            Enchantment enchantType = enchant.getKey();
-            if (enchantType instanceof EnchantmentSweepingEdge) {
-                foundSweeping = true;
-                break;
+        if (item.getItem() instanceof ItemSword) {
+            Map<Enchantment, Integer> enchants = EnchantmentHelper.getEnchantments(item);
+            boolean foundSweeping = false;
+            for (Map.Entry<Enchantment, Integer> enchant : enchants.entrySet()) {
+                Enchantment enchantType = enchant.getKey();
+                if (enchantType instanceof EnchantmentSweepingEdge) {
+                    foundSweeping = true;
+                    break;
+                }
             }
-        }
-        Entity targetEntity = event.getTarget();
-        if (!foundSweeping) {
-            overrideVanillaMechanics(player, targetEntity);
-            event.setCanceled(true);
+            Entity targetEntity = event.getTarget();
+            if (!foundSweeping) {
+                overrideVanillaMechanics(player, targetEntity);
+                event.setCanceled(true);
+            }
         }
     }
 
