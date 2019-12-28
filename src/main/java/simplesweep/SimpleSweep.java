@@ -11,6 +11,7 @@ import net.minecraft.entity.boss.dragon.EnderDragonPartEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.SwordItem;
 import net.minecraft.network.play.server.SEntityVelocityPacket;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.potion.Effects;
@@ -41,19 +42,21 @@ public class SimpleSweep {
     public void interceptAttack(AttackEntityEvent event) {
         PlayerEntity player = event.getPlayer();
         ItemStack item = player.getHeldItemMainhand();
-        Map<Enchantment, Integer> enchants = EnchantmentHelper.getEnchantments(item);
-        boolean foundSweeping = false;
-        for (Map.Entry<Enchantment, Integer> enchant : enchants.entrySet()) {
-            Enchantment enchantType = enchant.getKey();
-            if (enchantType instanceof SweepingEnchantment) {
-                foundSweeping = true;
-                break;
+        if (item.getItem() instanceof SwordItem) {
+            Map<Enchantment, Integer> enchants = EnchantmentHelper.getEnchantments(item);
+            boolean foundSweeping = false;
+            for (Map.Entry<Enchantment, Integer> enchant : enchants.entrySet()) {
+                Enchantment enchantType = enchant.getKey();
+                if (enchantType instanceof SweepingEnchantment) {
+                    foundSweeping = true;
+                    break;
+                }
             }
-        }
-        Entity targetEntity = event.getTarget();
-        if (!foundSweeping) {
-            overrideVanillaMechanics(player, targetEntity);
-            event.setCanceled(true);
+            Entity targetEntity = event.getTarget();
+            if (!foundSweeping) {
+                overrideVanillaMechanics(player, targetEntity);
+                event.setCanceled(true);
+            }
         }
     }
 
