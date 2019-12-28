@@ -3,7 +3,7 @@ loaderVersion="[28,)" #mandatory
 issueTrackerURL="http://github.com/strikerrocker/VanillaTweaks/issues/" #optional
 [[mods]] #mandatory
 modId="simplesweep" #mandatory
-version="1.0" #mandatory
+version="1.1" #mandatory
 displayName="Simple Sweep" #mandatory
 credits="Big shoutout to computers, without you I would have no job." #optional
 authors="djmanly" #optional
