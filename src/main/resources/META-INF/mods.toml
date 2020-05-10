@@ -3,7 +3,7 @@ loaderVersion="[28,)" #mandatory
 issueTrackerURL="http://github.com/strikerrocker/VanillaTweaks/issues/" #optional
 [[mods]] #mandatory
 modId="simplesweep" #mandatory
-version="1.1" #mandatory
+version="1.15.2_0.1.0" #mandatory
 displayName="Simple Sweep" #mandatory
 credits="Big shoutout to computers, without you I would have no job." #optional
 authors="djmanly" #optional
@@ -17,7 +17,7 @@ description='''Simple Minecraft mod that removes the sweep attack unless the wea
 [[dependencies.simplesweep]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.14.4]"
+    versionRange="[1.15.2]"
     ordering="NONE"
     side="BOTH"
 [[dependencies.simplesweep]]

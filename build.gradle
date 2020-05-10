@@ -18,7 +18,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
 // We use the version format MCVERSION-MAJOR.MINOR.PATCH
-version = modMinecraftVersion + "-" + modVersion
+version = modMinecraftVersion + "_" + modVersion
 group = modGroup
 archivesBaseName = modFileName
 
@@ -53,7 +53,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                examplemod {
+                simplesweep {
                     // Main sources (everything that goes in your final compiled mod. From /src/main/)
                     source sourceSets.main
 //					// Test sources (debugging, unit tests. From /src/test/)
@@ -72,7 +72,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                examplemod {
+                simplesweep {
                     // Main sources (everything that goes in your final compiled mod. From /src/main/)
                     source sourceSets.main
 //					// Test sources (debugging, unit tests. From /src/test/)
@@ -93,7 +93,7 @@ minecraft {
             args '--mod', modId, '--all', '--output', file('src/generated/resources/')
 
             mods {
-                examplemod {
+                simplesweep {
                     // Main sources (everything that goes in your final compiled mod. From /src/main/)
                     source sourceSets.main
 //					// Test sources (debugging, unit tests. From /src/test/)
@@ -110,24 +110,22 @@ dependencies {
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:" + modMinecraftVersion + "-" + modForgeVersion
 
-    // You may put jars on which you depend on in ./libs or you may define them like so..
-    // compile "some.group:artifact:version:classifier"
-    // compile "some.group:artifact:version"
-
-    // Real examples
-    // compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
-    // compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
-
-    // The 'provided' configuration is for optional dependencies that exist at compile-time but might not at runtime.
-    // provided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-
-    // These dependencies get remapped to your current MCP mappings
-    // deobf 'com.mod-buildcraft:buildcraft:6.0.8:dev'
+    // compile against the JEI API but do not include it at runtime
+    compileOnly fg.deobf("mezz.jei:jei-${modMinecraftVersion}:${jeiVersion}:api")
+    // at runtime, use the full JEI jar
+    runtimeOnly fg.deobf("mezz.jei:jei-${modMinecraftVersion}:${jeiVersion}")
 
     // For more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
+}
+
+repositories {
+    maven { // Mantle, TCon, JEI
+        name 'DVS1 Maven FS'
+        url 'http://dvs1.progwml6.com/files/maven/'
+    }
 }
 
 jar {
