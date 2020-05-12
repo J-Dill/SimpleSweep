@@ -19,7 +19,7 @@ public class SimpleSweep {
     @SuppressWarnings("unused")
     @SubscribeEvent
     public void onAttackEntity(final AttackEntityEvent evt) {
-        // prevent sweeping from taking effect unless the enchantment is in place, onGround flag is reset the next tick anyways`
+        // If the player cannot do any sweeping damage, they do not have the enchantment.
         if (EnchantmentHelper.getSweepingDamageRatio(evt.getPlayer()) == 0.0F) {
             PlayerEntity player = evt.getPlayer();
             if (player.onGround) {
