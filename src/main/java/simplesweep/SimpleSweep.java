@@ -23,7 +23,7 @@ public class SimpleSweep {
         if (EnchantmentHelper.getSweepingDamageRatio(evt.getPlayer()) == 0.0F) {
             PlayerEntity player = evt.getPlayer();
             if (player.onGround) {
-                player.resetCooldown();
+                player.onGround = false;
             }
         }
     }
