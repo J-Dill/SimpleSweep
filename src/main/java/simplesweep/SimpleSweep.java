@@ -22,8 +22,9 @@ public class SimpleSweep {
         // If the player cannot do any sweeping damage, they do not have the enchantment.
         if (EnchantmentHelper.getSweepingDamageRatio(evt.getPlayer()) == 0.0F) {
             PlayerEntity player = evt.getPlayer();
-            if (player.onGround) {
-                player.onGround = false;
+            // If player is on ground, set them (for this tick) to onGround = false;
+            if (player.func_233570_aj_()) {
+                player.func_230245_c_(false);
             }
         }
     }

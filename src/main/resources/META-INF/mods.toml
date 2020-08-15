@@ -1,9 +1,10 @@
 modLoader="javafml" #mandatory
 loaderVersion="[28,)" #mandatory
 issueTrackerURL="http://github.com/strikerrocker/VanillaTweaks/issues/" #optional
+license="MIT License"
 [[mods]] #mandatory
 modId="simplesweep" #mandatory
-version="1.15.2_1.1" #mandatory
+version="1.16.2_1.0" #mandatory
 displayName="Simple Sweep" #mandatory
 credits="Big shoutout to computers, without you I would have no job." #optional
 authors="djmanly" #optional
@@ -11,18 +12,18 @@ description='''Simple Minecraft mod that removes the sweep attack unless the wea
 [[dependencies.simplesweep]]
     modId="forge"
     mandatory=true
-    versionRange="[28,)"
+    versionRange="[33,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.simplesweep]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.15.2]"
+    versionRange="[1.16.2]"
     ordering="NONE"
     side="BOTH"
 [[dependencies.simplesweep]]
     modId="jei"
     mandatory=false
-    versionRange="[6,)"
+    versionRange="[7,)"
     ordering="NONE"
     side="BOTH"
