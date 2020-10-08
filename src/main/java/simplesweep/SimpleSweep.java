@@ -23,8 +23,8 @@ public class SimpleSweep {
         if (EnchantmentHelper.getSweepingDamageRatio(evt.getPlayer()) == 0.0F) {
             PlayerEntity player = evt.getPlayer();
             // If player is on ground, set them (for this tick) to onGround = false;
-            if (player.func_233570_aj_()) {
-                player.func_230245_c_(false);
+            if (player.isOnGround()) {
+                player.setOnGround(false);
             }
         }
     }
