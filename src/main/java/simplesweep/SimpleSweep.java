@@ -16,7 +16,6 @@ public class SimpleSweep {
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    @SuppressWarnings("unused")
     @SubscribeEvent
     public void onAttackEntity(final AttackEntityEvent evt) {
         // If the player cannot do any sweeping damage, they do not have the enchantment.
