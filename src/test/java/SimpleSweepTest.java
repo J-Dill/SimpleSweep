@@ -1,4 +1,5 @@
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
@@ -18,7 +19,7 @@ import org.mockito.Mockito;
 import simplesweep.ModConfig;
 import simplesweep.SimpleSweep;
 
-public class TestTest {
+public class SimpleSweepTest {
 
     private final SimpleSweep simpleSweep = mock(SimpleSweep.class);
     private MockedStatic<EnchantmentHelper> utilities;
@@ -40,10 +41,10 @@ public class TestTest {
         ModConfig.whitelist = new String[]{"minecraft:diamond_sword"};
 
         EntityPlayer player = mock(EntityPlayer.class);
+        player.onGround = true;
         AttackEntityEvent event = mock(AttackEntityEvent.class);
         doMocks(player, event, "minecraft:diamond_sword");
 
-        player.onGround = true;
         simpleSweep.interceptAttack(event);
 
         assertFalse(player.onGround);
@@ -55,10 +56,10 @@ public class TestTest {
         ModConfig.whitelist = new String[]{};
 
         EntityPlayer player = mock(EntityPlayer.class);
+        player.onGround = true;
         AttackEntityEvent event = mock(AttackEntityEvent.class);
         doMocks(player, event, "minecraft:wooden_sword");
 
-        player.onGround = true;
         simpleSweep.interceptAttack(event);
 
         assertFalse(player.onGround);
@@ -70,20 +71,50 @@ public class TestTest {
         ModConfig.whitelist = new String[]{};
 
         EntityPlayer player = mock(EntityPlayer.class);
+        player.onGround = true;
         AttackEntityEvent event = mock(AttackEntityEvent.class);
         doMocks(player, event, "minecraft:wooden_sword");
 
-        player.onGround = true;
         simpleSweep.interceptAttack(event);
 
         assertFalse(player.onGround);
     }
 
-    private void doMocks(EntityPlayer player, AttackEntityEvent event, String name) {
+    @Test
+    public void testBoth() {
+        ModConfig.whitelist = new String[]{"minecraft:diamond_sword"};
+        ModConfig.blacklist = new String[]{"minecraft:stone_sword"};
+
+        EntityPlayer player = mock(EntityPlayer.class);
+        player.onGround = true;
+        AttackEntityEvent event = mock(AttackEntityEvent.class);
+        doMocks(player, event, "minecraft:diamond_sword");
+
+        simpleSweep.interceptAttack(event);
+
+        assertFalse(player.onGround);
+    }
+
+    @Test
+    public void testBothNotInBoth() {
+        ModConfig.whitelist = new String[]{"minecraft:diamond_sword"};
+        ModConfig.blacklist = new String[]{"minecraft:stone_sword"};
+
+        EntityPlayer player = mock(EntityPlayer.class);
+        player.onGround = true;
+        AttackEntityEvent event = mock(AttackEntityEvent.class);
+        doMocks(player, event, "minecraft:wooden_sword");
+
+        simpleSweep.interceptAttack(event);
+
+        assertTrue(player.onGround);
+    }
+
+    private void doMocks(EntityPlayer player, AttackEntityEvent event, String itemName) {
         ItemStack itemStack = mock(ItemStack.class);
         Item item = mock(Item.class);
         when(itemStack.getItem()).thenReturn(item);
-        when(item.getRegistryName()).thenReturn(new ResourceLocation(name));
+        when(item.getRegistryName()).thenReturn(new ResourceLocation(itemName));
         when(player.getHeldItemMainhand()).thenReturn(itemStack);
         when(event.getEntityPlayer()).thenReturn(player);
         doCallRealMethod().when(simpleSweep).interceptAttack(event);

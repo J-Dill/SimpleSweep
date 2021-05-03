@@ -54,7 +54,10 @@ public class SimpleSweep {
             }
 
             // If player is on ground, set them (for this tick) to onGround = false;
-            if (((whitelist.length == 0 && blacklist.length == 0) || (whitelist.length != 0 && isInWhitelist) || (blacklist.length != 0 && !isInBlacklist)) && entityPlayer.onGround) {
+            if (((whitelist.length == 0 && blacklist.length == 0) ||
+                (whitelist.length != 0 && isInWhitelist) ||
+                (whitelist.length == 0 && !isInBlacklist)) &&
+                entityPlayer.onGround) {
                 entityPlayer.onGround = false;
             }
         }
