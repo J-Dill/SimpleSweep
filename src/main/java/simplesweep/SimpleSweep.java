@@ -21,7 +21,7 @@ public class SimpleSweep {
 
     static final String MOD_ID = "simplesweep";
     static final String MOD_NAME = "SimpleSweep";
-    static final String VERSION = "1.0";
+    static final String VERSION = "1.2";
 
     public SimpleSweep() {
         // Register ourselves for server and other game events we are interested in
