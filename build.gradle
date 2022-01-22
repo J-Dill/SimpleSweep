@@ -1,63 +1,36 @@
-// Forge buildscript
 buildscript {
     repositories {
-        // Forge Maven
         maven { url = 'https://files.minecraftforge.net/maven' }
-        // Other useful Mavens
-        jcenter()
+        maven { url = 'https://plugins.gradle.org/m2/' }
         mavenCentral()
     }
-    // Buildscript dependency on Forge Gradle
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
-// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
+apply plugin: 'com.matthewprenger.cursegradle'
 
-// We use the version format MCVERSION-MAJOR.MINOR.PATCH
-version = modMinecraftVersion + "_" + modVersion
-group = modGroup
-archivesBaseName = modFileName
+version = "${mod_version}"
+group = "${mod_group}"
+archivesBaseName = "${mod_id}"
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
-
-repositories {
-    // Put remote maven repositories here
-}
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
-    // The mappings can be changed at any time, and must be in the following format.
-    // snapshot_YYYYMMDD   Snapshot are built nightly.
-    // stable_#            Stables are built at the discretion of the MCP team.
-    // Use non-default mappings at your own risk. they may not always work.
-    // Simply re-run your setup task after changing the mappings to update your workspace.
-    mappings channel: modMcpMappingsChannel, version: modMcpMappingsVersion
+    mappings channel: 'official', version: version_mc
 
-    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
-
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-
-    // Default run configurations.
-    // These can be tweaked, removed, or duplicated as needed.
     runs {
         client {
             workingDirectory project.file('run')
 
-            // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'REGISTRIES,REGISTRYDUMP'
-
-            // Recommended logging level for the console
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
 
             mods {
                 simplesweep {
-                    // Main sources (everything that goes in your final compiled mod. From /src/main/)
                     source sourceSets.main
-//					// Test sources (debugging, unit tests. From /src/test/)
-//					source sourceSets.test
                 }
             }
         }
@@ -65,18 +38,12 @@ minecraft {
         server {
             workingDirectory project.file('run')
 
-            // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'REGISTRIES,REGISTRYDUMP'
-
-            // Recommended logging level for the console
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
 
             mods {
                 simplesweep {
-                    // Main sources (everything that goes in your final compiled mod. From /src/main/)
                     source sourceSets.main
-//					// Test sources (debugging, unit tests. From /src/test/)
-//					source sourceSets.test
                 }
             }
         }
@@ -84,144 +51,81 @@ minecraft {
         data {
             workingDirectory project.file('run')
 
-            // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'REGISTRIES,REGISTRYDUMP'
-
-            // Recommended logging level for the console
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
 
-            args '--mod', modId, '--all', '--output', file('src/generated/resources/')
+            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/')
 
             mods {
                 simplesweep {
-                    // Main sources (everything that goes in your final compiled mod. From /src/main/)
                     source sourceSets.main
-//					// Test sources (debugging, unit tests. From /src/test/)
-//					source sourceSets.test
                 }
             }
         }
     }
 }
 
-dependencies {
-    // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
-    // that the dep is a ForgeGradle 'patcher' dependency. And it's patches will be applied.
-    // The userdev artifact is a special name and will get all sorts of transformations applied to it.
-    minecraft "net.minecraftforge:forge:" + modMinecraftVersion + "-" + modForgeVersion
-
-    // compile against the JEI API but do not include it at runtime
-    compileOnly fg.deobf("mezz.jei:jei-${jeiMcVersion}:${jeiVersion}:api")
-    // at runtime, use the full JEI jar
-    runtimeOnly fg.deobf("mezz.jei:jei-${jeiMcVersion}:${jeiVersion}")
-
-    // unit test dependencies
-    testCompile "junit:junit:4.13.2"
-    testImplementation "org.mockito:mockito-core:3.+"
-    testImplementation "org.mockito:mockito-inline:3.+"
-
+repositories {
+    maven {
+        url = "https://www.cursemaven.com"
+    }
+    maven {
+        // JEI
+        name = "Progwml6 maven"
+        url = "https://dvs1.progwml6.com/files/maven/"
+    }
+    mavenCentral()
 }
 
-repositories {
-    maven { // Mantle, TCon, JEI
-        name 'DVS1 Maven FS'
-        url 'http://dvs1.progwml6.com/files/maven/'
-    }
+dependencies {
+    minecraft "net.minecraftforge:forge:${version_forge}"
+
+    // JEI
+    compileOnly fg.deobf("mezz.jei:jei-${version_mc}:${version_jei}:api")
+    runtimeOnly fg.deobf("mezz.jei:jei-${version_mc}:${version_jei}")
+
+    // Unit test dependencies
+    testCompileOnly "junit:junit:4.13.2"
+    testRuntimeOnly 'org.hamcrest:hamcrest-core:2.2'
+    testImplementation 'org.mockito:mockito-core:4.2.0'
+    testImplementation 'org.mockito:mockito-inline:4.2.0'
 }
 
 jar {
     manifest {
         attributes([
-                "Specification-Title"     : modId,
-                "Specification-Vendor"    : modGroup,
-                "Specification-Version"   : "1.0", // We are version 1 of ourselves
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : "${version}",
-                "Implementation-Vendor"   : modGroup,
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                "Signing-Fingerprint"     : project.hasProperty('signSHA1') ? project.findProperty('signSHA1') : "unsigned"
-        ])
+                "Specification-Title"     : "${mod_id}",
+                "Specification-Vendor"    : "${mod_author}",
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : "${mod_id}",
+                "Implementation-Version"  : "${mod_version}",
+                "Implementation-Vendor"   : "${mod_author}",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")],)
     }
 }
 
-// Example configuration to allow publishing using the maven-publish task
-// we define a custom artifact that is sourced from the reobfJar output task
-// and then declare that to be published
-// Note you'll need to add a repository here
-def reobfFile = file("$buildDir/reobfJar/output.jar")
-def reobfArtifact = artifacts.add('default', reobfFile) {
-    type 'jar'
-    builtBy 'reobfJar'
+task sourcesJar(type: Jar) {
+    archiveClassifier.set('sources')
+    from sourceSets.main.allJava
 }
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact reobfArtifact
-        }
-    }
-    repositories {
-        maven {
-            url "file:///${project.projectDir}/mcmodsrepo"
-        }
-    }
-}
-
-// Jar signing
-import net.minecraftforge.gradle.common.task.SignJar
-
-task signJar(type: SignJar, dependsOn: jar) {
-    // Skips if the keyStore property is missing.
-    onlyIf {
-        project.hasProperty('keyStore')
-    }
-
-    // findProperty allows us to reference the property without it existing.
-    // Using project.propName would cause the script to fail validation if the property did not exist.
-    keyStore = project.findProperty('keyStore')
-    alias = project.findProperty('keyStoreAlias')
-    storePass = project.findProperty('keyStorePass')
-    keyPass = project.findProperty('keyStoreKeyPass')
-    inputFile = jar.archivePath
-    outputFile = jar.archivePath
-}
-
-// Runs the signJar task automatically when build is run.
-build.dependsOn signJar
-
-// Process resources on build
-processResources {
-    // This will ensure that this task is redone when the versions change.
-    inputs.property 'version', project.version
-
-    // Replace stuff in mods.toml, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'META-INF/mods.toml'
-
-        // Replace version
-        expand 'version': project.version
-    }
-
-    // Copy everything else except the mods.toml
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'META-INF/mods.toml'
-    }
-}
-
-// Create Sources Jar
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-build.dependsOn sourcesJar
-
-//// Create Javadoc Jar
-//task javadocJar(type: Jar, dependsOn: javadoc) {
-//	classifier = 'javadoc'
-//	from javadoc.destinationDir
-//}
-//build.dependsOn javadocJar
 
 artifacts {
     archives sourcesJar
-//	archives javadocJar
 }
+
+jar.finalizedBy('reobfJar')
+
+//curseforge {
+//    apiKey = findProperty('curseKey') ?: 0
+//
+//    project {
+//        id = "${curse_id}"
+//        releaseType = "${curse_release}"
+//        changelogType = 'markdown'
+//        changelog = file('CHANGELOG.md')
+//        addArtifact(sourcesJar)
+//        "${curse_versions}".split(',').each {
+//            addGameVersion "${it}"
+//        }
+//    }
+//}

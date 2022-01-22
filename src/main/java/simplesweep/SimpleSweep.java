@@ -1,10 +1,10 @@
 package simplesweep;
 
 import java.util.List;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -28,11 +28,11 @@ public class SimpleSweep {
 
     @SubscribeEvent
     public void interceptAttack(AttackEntityEvent event) {
-        PlayerEntity entityPlayer = event.getPlayer();
+        Player entityPlayer = event.getPlayer();
         // If the player cannot do any sweeping damage, they do not have the enchantment.
         if (EnchantmentHelper.getSweepingDamageRatio(entityPlayer) == 0.0F) {
-            ItemStack heldItemMainhand = entityPlayer.getHeldItemMainhand();
-            ResourceLocation weaponLocation = heldItemMainhand.getItem().getRegistryName();
+            ItemStack heldItemMainHand = entityPlayer.getMainHandItem();
+            ResourceLocation weaponLocation = heldItemMainHand.getItem().getRegistryName();
             assert weaponLocation != null;
             List<? extends String> whitelist = Config.whitelist.get();
             boolean isInWhitelist = false;
