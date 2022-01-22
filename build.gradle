@@ -115,17 +115,13 @@ artifacts {
 
 jar.finalizedBy('reobfJar')
 
-//curseforge {
-//    apiKey = findProperty('curseKey') ?: 0
-//
-//    project {
-//        id = "${curse_id}"
-//        releaseType = "${curse_release}"
-//        changelogType = 'markdown'
-//        changelog = file('CHANGELOG.md')
-//        addArtifact(sourcesJar)
-//        "${curse_versions}".split(',').each {
-//            addGameVersion "${it}"
-//        }
-//    }
-//}
+curseforge {
+    apiKey = findProperty('curseForgeApiKey') ?: 0
+
+    project {
+        id = "${curse_id}"
+        releaseType = "${curse_release}"
+        changelog = "Ported mod to MC 1.18.1"
+        addGameVersion "${version_mc}"
+    }
+}
