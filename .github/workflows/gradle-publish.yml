@@ -1,0 +1,67 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # This one has to be before Java setup, as there is a known bug when JAVA_HOME is set when it runs.
+      - name: Load Gradle Properties
+        uses: madhead/read-java-properties@latest
+        id: load-props
+        with:
+          file: ./gradle.properties
+          all: true
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          server-id: github
+          settings-path: ${{ github.workspace }}
+
+      - name: Build with Gradle
+        id: build
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+
+      - name: Create GitHub Release
+        id: create-release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: ${{ secrets.TOKEN }}
+          prerelease: false
+          files: ./build/libs/*.jar
+
+      - name: Get Release Changelog
+        id: get-release-changes
+        uses: cardinalby/git-get-release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          tag: ${{ steps.create-release.outputs.automatic_releases_tag }}
+
+      - name: Upload to CurseForge
+        uses: itsmeow/curseforge-upload@v3
+        with:
+          file_path: "./build/libs/${{ steps.load-props.outputs.mod_id }}-${{ steps.load-props.outputs.version_mc }}_${{ steps.load-props.outputs.mod_version }}.jar"
+          game_endpoint: minecraft
+          release_type: release
+          game_versions: "${{ steps.load-props.outputs.curse_versions_forge }}"
+          project_id: "${{ steps.load-props.outputs.curse_id }}"
+          changelog: "${{ steps.get-release-changes.output.body }}"
+          changelog_type: "markdown"
+          token: "${{ secrets.CURSEFORGE_API_KEY }}"

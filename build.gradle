@@ -69,26 +69,32 @@ repositories {
     maven {
         url = "https://www.cursemaven.com"
     }
-    maven {
-        // JEI
-        name = "Progwml6 maven"
-        url = "https://dvs1.progwml6.com/files/maven/"
-    }
     mavenCentral()
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${version_forge}"
+    minecraft "net.minecraftforge:forge:${version_mc}-${version_forge}"
+}
 
-    // JEI
-    compileOnly fg.deobf("mezz.jei:jei-${version_mc}:${version_jei}:api")
-    runtimeOnly fg.deobf("mezz.jei:jei-${version_mc}:${version_jei}")
+def replaceResources = tasks.register("replaceResources", Copy) {
+    it.outputs.upToDateWhen { false }
+    //Copy it into the build dir
+    it.from(sourceSets.main.resources) {
+        include "META-INF/mods.toml"
+        expand 'version': version, 'mc_version': version_range_mc, 'forge_version': version_range_forge,
+                'mod_id': mod_id, 'mod_name': mod_name, 'mod_author': mod_author
+    }
+    it.into "$buildDir/resources/main/"
+}
 
-    // Unit test dependencies
-    testCompileOnly "junit:junit:4.13.2"
-    testRuntimeOnly 'org.hamcrest:hamcrest-core:2.2'
-    testImplementation 'org.mockito:mockito-core:4.2.0'
-    testImplementation 'org.mockito:mockito-inline:4.2.0'
+processResources {
+    duplicatesStrategy(DuplicatesStrategy.FAIL)
+    exclude('META-INF/mods.toml')
+    configure { finalizedBy(replaceResources) }
+}
+
+classes.configure {
+    dependsOn(replaceResources)
 }
 
 jar {

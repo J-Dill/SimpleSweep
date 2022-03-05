@@ -1,29 +1,23 @@
 modLoader="javafml" #mandatory
-loaderVersion="[39,)" #mandatory
+loaderVersion="${forge_version}" #mandatory
 issueTrackerURL="http://github.com/strikerrocker/VanillaTweaks/issues/" #optional
 license="MIT License"
 [[mods]] #mandatory
-modId="simplesweep" #mandatory
-version="1.18.1_1.0" #mandatory
-displayName="Simple Sweep" #mandatory
+modId="${mod_id}" #mandatory
+version="${version}" #mandatory
+displayName="${mod_name}" #mandatory
 credits="Big shoutout to computers, without you I would have no job." #optional
-authors="JDill" #optional
-description='''Removes the sweep attack unless the weapon is enchanted with a sweeping enchantment (i.e. Sweeping Edge).'''
+authors="${mod_author}" #optional
+description='Removes the sweep attack unless the weapon is enchanted with a sweeping enchantment (i.e. Sweeping Edge).'
 [[dependencies.simplesweep]]
     modId="forge"
     mandatory=true
-    versionRange="[39,)"
+    versionRange="${forge_version}"
     ordering="NONE"
     side="BOTH"
 [[dependencies.simplesweep]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.18.1]"
-    ordering="NONE"
-    side="BOTH"
-[[dependencies.simplesweep]]
-    modId="jei"
-    mandatory=false
-    versionRange="[9,)"
+    versionRange="${mc_version}"
     ordering="NONE"
     side="BOTH"
