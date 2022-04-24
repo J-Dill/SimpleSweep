@@ -30,7 +30,8 @@ public class SimpleSweep {
     public void interceptAttack(AttackEntityEvent event) {
         Player entityPlayer = event.getPlayer();
         // If the player cannot do any sweeping damage, they do not have the enchantment.
-        if (EnchantmentHelper.getSweepingDamageRatio(entityPlayer) == 0.0F) {
+        if ((Config.onlyCrouch.get() && !entityPlayer.isCrouching()) ||
+                (!Config.onlyCrouch.get() && EnchantmentHelper.getSweepingDamageRatio(entityPlayer) == 0.0F)) {
             ItemStack heldItemMainHand = entityPlayer.getMainHandItem();
             ResourceLocation weaponLocation = heldItemMainHand.getItem().getRegistryName();
             assert weaponLocation != null;

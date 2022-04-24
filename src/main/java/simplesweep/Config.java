@@ -16,6 +16,7 @@ public class Config {
 
     public static ForgeConfigSpec.ConfigValue<List<? extends String>> whitelist;
     public static ForgeConfigSpec.ConfigValue<List<? extends String>> blacklist;
+    public static ForgeConfigSpec.BooleanValue onlyCrouch;
 
     static {
         whitelist = COMMON_BUILDER
@@ -32,6 +33,11 @@ public class Config {
             .defineList("blacklist", Collections.emptyList(),
                 it -> it instanceof String && ResourceLocation.isValidResourceLocation((String) it)
             );
+
+        onlyCrouch = COMMON_BUILDER
+            .comment(" Alternatively to requiring the Sweeping Edge enchantment, set this option to",
+                    " true require the player to crouch to be able to sweep attack.")
+            .define("onlyCrouch", false);
 
         COMMON_CONFIG = COMMON_BUILDER.build();
     }
